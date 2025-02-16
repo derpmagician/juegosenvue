@@ -8,6 +8,7 @@
       <div class="button-container">
         <router-link to="/home">Home</router-link>
         <router-link to="/game?game=freeDrawing">FreeDrawing</router-link>
+        <router-link to="/game?game=pong">Pong</router-link>
         <router-link to="/game?game=snake">Snake</router-link>
       </div>
     </div>

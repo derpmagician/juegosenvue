@@ -1,145 +1,247 @@
 <template>
-  <div class="game-container">
-    <h2>Juego de Pong</h2>
-    <canvas ref="gameCanvas" width="600" height="600"></canvas>
-    <p>Puntos: {{ score }}</p>
+  <div class="pong-container">
+    <canvas ref="gameCanvas" class="pong-canvas"></canvas>
+    <div class="score">
+      <span>Jugador: {{ playerScore }}</span>
+      <span>CPU: {{ cpuScore }}</span>
+    </div>
+    <div v-if="!isPlaying" class="start-screen">
+      <button @click="startGame">Iniciar Juego</button>
+    </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      score: 0, // Puntuación del jugador
-      playerPaddle: { x: 10, y: 150, width: 20, height: 80, color: 'purple' }, // Propiedades de la paleta del jugador
-      cpuPaddle: { x: 570, y: 150, width: 20, height: 80, color: 'blue' }, // Propiedades de la paleta de la CPU
-      ball: { x: 300, y: 300, radius: 10, velocityX: 2, velocityY: 2 }, // Propiedades de la pelota
-      animationFrameId: null, // ID del frame de animación
-      cpuSpeed: 3.15, // Velocidad de la paleta de la CPU
-      speedIncreaseInterval: null, // ID del intervalo para aumentar la velocidad
-    };
-  },
-  mounted() {
-    this.startAnimation(); // Inicia la animación del juego
-    window.addEventListener('mousemove', this.movePlayerPaddle); // Escucha el movimiento del mouse
-    this.startSpeedIncrease(); // Inicia el aumento de velocidad
-  },
-  beforeDestroy() {
-    cancelAnimationFrame(this.animationFrameId); // Cancela la animación al destruir el componente
-    window.removeEventListener('mousemove', this.movePlayerPaddle); // Elimina el listener
-    clearInterval(this.speedIncreaseInterval); // Limpia el intervalo al destruir el componente
-  },
-  methods: {
-    drawPaddle(paddle) {
-      const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-      const ctx = canvas.getContext('2d'); // Obtiene el contexto 2D del canvas
-      ctx.fillStyle = paddle.color; // Usa el color de la paleta
-      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height); // Dibuja la paleta
-    },
-    drawBall() {
-      const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-      const ctx = canvas.getContext('2d'); // Obtiene el contexto 2D del canvas
-      ctx.fillStyle = 'red';
-      ctx.beginPath();
-      ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2); // Dibuja la pelota
-      ctx.fill();
-    },
-    updateBallPosition() {
-      const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-      this.ball.x += this.ball.velocityX; // Actualiza la posición en X
-      this.ball.y += this.ball.velocityY; // Actualiza la posición en Y
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-      // Verifica colisiones con los bordes
-      if (this.ball.y + this.ball.radius > canvas.height || this.ball.y - this.ball.radius < 0) {
-        this.ball.velocityY = -this.ball.velocityY; // Rebota en el eje Y
-      }
+// Referencias y variables del juego
+const gameCanvas = ref(null);
+const ctx = ref(null);
+const isPlaying = ref(false);
+const playerScore = ref(0);
+const cpuScore = ref(0);
 
-      // Verifica colisiones con la paleta del jugador
-      if (this.ball.x - this.ball.radius < this.playerPaddle.x + this.playerPaddle.width &&
-          this.ball.y > this.playerPaddle.y && this.ball.y < this.playerPaddle.y + this.playerPaddle.height) {
-        this.ball.velocityX = -this.ball.velocityX; // Rebota en el eje X
-      }
+// Configuración del juego
+const paddleHeight = 100;
+const paddleWidth = 10;
+const ballSize = 10;
+const paddleSpeed = 6;
+const initialBallSpeed = 3;
 
-      // Verifica colisiones con la paleta de la CPU
-      if (this.ball.x + this.ball.radius > this.cpuPaddle.x &&
-          this.ball.y > this.cpuPaddle.y && this.ball.y < this.cpuPaddle.y + this.cpuPaddle.height) {
-        this.ball.velocityX = -this.ball.velocityX; // Rebota en el eje X
-      }
+// Estado del juego
+const player = ref({
+  y: 0,
+  speed: 0
+});
 
-      // Verifica si la pelota sale del canvas por el lado izquierdo
-      if (this.ball.x - this.ball.radius < 0) {
-        this.resetGame(); // Reinicia el juego si la pelota pasa el lado izquierdo
-      }
+const cpu = ref({
+  y: 0,
+  speed: 3
+});
 
-      // Verifica si la pelota sale del canvas por el lado derecho
-      if (this.ball.x + this.ball.radius > canvas.width) {
-        this.score++; // Incrementa la puntuación
-        this.resetBall(); // Reinicia la posición de la pelota
-      }
-    },
-    movePlayerPaddle(event) {
-      const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-      const rect = canvas.getBoundingClientRect(); // Obtiene el rectángulo del canvas
-      const mouseY = event.clientY - rect.top; // Posición Y del mouse
+const ball = ref({
+  x: 0,
+  y: 0,
+  speedX: 0,
+  speedY: 0
+});
 
-      // Mueve la paleta del jugador con el mouse
-      this.playerPaddle.y = mouseY - this.playerPaddle.height / 2;
-      if (this.playerPaddle.y < 0) this.playerPaddle.y = 0; // Limita la paleta al borde superior
-      if (this.playerPaddle.y + this.playerPaddle.height > canvas.height) this.playerPaddle.y = canvas.height - this.playerPaddle.height; // Limita la paleta al borde inferior
-    },
-    moveCPUPaddle() {
-      const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-      // Mueve la paleta de la CPU para que su centro esté en la pelota
-      if (this.ball.y > this.cpuPaddle.y + this.cpuPaddle.height) {
-        this.cpuPaddle.y += this.cpuSpeed; // Mueve hacia abajo
-      } else if (this.ball.y < this.cpuPaddle.y) {
-        this.cpuPaddle.y -= this.cpuSpeed; // Mueve hacia arriba
-      }
-
-      // Limita la paleta de la CPU al borde del canvas
-      if (this.cpuPaddle.y < 0) this.cpuPaddle.y = 0;
-      if (this.cpuPaddle.y + this.cpuPaddle.height > canvas.height) this.cpuPaddle.y = canvas.height - this.cpuPaddle.height;
-    },
-    resetGame() {
-      this.score = 0; // Reinicia la puntuación
-      this.resetBall(); // Reinicia la posición de la pelota
-    },
-    resetBall() {
-      this.ball.x = 300; // Reinicia la posición de la pelota al centro
-      this.ball.y = 300;
-      this.ball.velocityX = 2; // Reinicia la velocidad de la pelota
-      this.ball.velocityY = 2;
-    },
-    startAnimation() {
-      const animate = () => {
-        const canvas = this.$refs.gameCanvas; // Obtiene el canvas
-        const ctx = canvas.getContext('2d'); // Obtiene el contexto 2D del canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
-        this.drawPaddle(this.playerPaddle); // Dibuja la paleta del jugador
-        this.drawPaddle(this.cpuPaddle); // Dibuja la paleta de la CPU
-        this.drawBall(); // Dibuja la pelota
-        this.updateBallPosition(); // Actualiza la posición de la pelota
-        this.moveCPUPaddle(); // Mueve la paleta de la CPU
-        this.animationFrameId = requestAnimationFrame(animate); // Solicita el siguiente frame de animación
-      };
-      animate(); // Inicia la animación
-    },
-    startSpeedIncrease() {
-      this.speedIncreaseInterval = setInterval(() => {
-        this.ball.velocityX *= 1.1; // Aumenta la velocidad en X
-        this.ball.velocityY *= 1.1; // Aumenta la velocidad en Y
-      }, 15000); // Cada 15 segundos
-    },
-  },
+// Inicialización del juego
+const initGame = () => {
+  const canvas = gameCanvas.value;
+  player.value.y = canvas.height / 2 - paddleHeight / 2;
+  cpu.value.y = canvas.height / 2 - paddleHeight / 2;
+  resetBall();
 };
+
+const resetBall = () => {
+  const canvas = gameCanvas.value;
+  ball.value = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    speedX: initialBallSpeed * (Math.random() > 0.5 ? 1 : -1),
+    speedY: initialBallSpeed * (Math.random() * 2 - 1)
+  };
+};
+
+// Control del jugador
+const handleKeyDown = (e) => {
+  if (e.key === 'ArrowUp') {
+    player.value.speed = -paddleSpeed;
+  } else if (e.key === 'ArrowDown') {
+    player.value.speed = paddleSpeed;
+  }
+};
+
+const handleKeyUp = (e) => {
+  if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+    player.value.speed = 0;
+  }
+};
+
+// Lógica de actualización
+const update = () => {
+  if (!isPlaying.value) return;
+
+  // Actualizar posición del jugador
+  player.value.y += player.value.speed;
+  player.value.y = Math.max(0, Math.min(gameCanvas.value.height - paddleHeight, player.value.y));
+
+  // IA simple para la CPU
+  const cpuCenter = cpu.value.y + paddleHeight / 2;
+  const ballCenter = ball.value.y;
+  if (cpuCenter < ballCenter - 35) {
+    cpu.value.y += cpu.value.speed;
+  } else if (cpuCenter > ballCenter + 35) {
+    cpu.value.y -= cpu.value.speed;
+  }
+
+  // Actualizar posición de la pelota
+  ball.value.x += ball.value.speedX;
+  ball.value.y += ball.value.speedY;
+
+  // Colisiones con las paredes
+  if (ball.value.y <= 0 || ball.value.y >= gameCanvas.value.height) {
+    ball.value.speedY *= -1;
+  }
+
+  // Colisiones con las paletas
+  if (checkPaddleCollision(player.value.y, 0) || 
+      checkPaddleCollision(cpu.value.y, gameCanvas.value.width - paddleWidth)) {
+    ball.value.speedX *= -1.1; // Aumentar velocidad gradualmente
+  }
+
+  // Puntuación
+  if (ball.value.x <= 0) {
+    cpuScore.value++;
+    resetBall();
+  } else if (ball.value.x >= gameCanvas.value.width) {
+    playerScore.value++;
+    resetBall();
+  }
+};
+
+const checkPaddleCollision = (paddleY, paddleX) => {
+  return ball.value.x >= paddleX &&
+         ball.value.x <= paddleX + paddleWidth &&
+         ball.value.y >= paddleY &&
+         ball.value.y <= paddleY + paddleHeight;
+};
+
+// Renderizado
+const draw = () => {
+  const canvas = gameCanvas.value;
+  const context = ctx.value;
+
+  // Limpiar canvas
+  context.fillStyle = '#000000';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Dibujar paletas
+  context.fillStyle = '#FFFFFF';
+  context.fillRect(0, player.value.y, paddleWidth, paddleHeight);
+  context.fillRect(canvas.width - paddleWidth, cpu.value.y, paddleWidth, paddleHeight);
+
+  // Dibujar pelota
+  context.beginPath();
+  context.arc(ball.value.x, ball.value.y, ballSize, 0, Math.PI * 2);
+  context.fill();
+
+  // Dibujar línea central
+  context.setLineDash([5, 15]);
+  context.beginPath();
+  context.moveTo(canvas.width / 2, 0);
+  context.lineTo(canvas.width / 2, canvas.height);
+  context.strokeStyle = '#FFFFFF';
+  context.stroke();
+};
+
+// Game loop
+let animationId = null;
+const gameLoop = () => {
+  update();
+  draw();
+  animationId = requestAnimationFrame(gameLoop);
+};
+
+// Controles del juego
+const startGame = () => {
+  isPlaying.value = true;
+  playerScore.value = 0;
+  cpuScore.value = 0;
+  initGame();
+  gameLoop();
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  const canvas = gameCanvas.value;
+  ctx.value = canvas.getContext('2d');
+  
+  // Configurar tamaño del canvas
+  canvas.width = 800;
+  canvas.height = 600;
+
+  // Agregar event listeners
+  window.addEventListener('keydown', handleKeyDown);
+  window.addEventListener('keyup', handleKeyUp);
+
+  initGame();
+  draw();
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleKeyDown);
+  window.removeEventListener('keyup', handleKeyUp);
+  if (animationId) {
+    cancelAnimationFrame(animationId);
+  }
+});
 </script>
 
 <style scoped>
-.game-container {
-  text-align: center;
-  margin-top: 20px;
+.pong-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #282c34;
+  padding: 20px;
+  min-height: 75vh;
 }
-canvas {
-  border: 1px solid #000; /* Borde del canvas */
+
+.pong-canvas {
+  border: 2px solid #61dafb;
+  margin-bottom: 20px;
+}
+
+.score {
+  display: flex;
+  justify-content: space-between;
+  width: 300px;
+  color: #ffffff;
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.start-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.start-screen button {
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #61dafb;
+  border: none;
+  border-radius: 4px;
+  color: #282c34;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.start-screen button:hover {
+  background-color: #4fa8d3;
 }
 </style> 

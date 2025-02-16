@@ -2,9 +2,9 @@
 import { ref, watch } from 'vue';
 import { useRoute } from 'vue-router'; // Importa useRoute
 //import PointCatchingGame from '@/components/games/PointCatchingGame.vue'; // Importa el juego de caza de puntos
-import FreeDrawingGame from '../components/games/FreeDrawingGame.vue'; // Importa el juego de dibujo libre
-//import PongGame from '@/components/games/PongGame.vue'; // Importa el juego de Pong
-import SnakeGame from '../components/games/SnakeGame.vue'; // Importa el juego de Snake
+import FreeDrawingGame from '@/components/games/FreeDrawingGame.vue'; // Importa el juego de dibujo libre
+import PongGame from '@/components/games/PongGame.vue'; // Importa el juego de Pong
+import SnakeGame from '@/components/games/SnakeGame.vue'; // Importa el juego de Snake
 console.log("Juegos")
 
 const currentGame = ref(null);
@@ -15,6 +15,8 @@ const loadGame = () => {
 
 	if (game === 'freeDrawing') {
 		currentGame.value = FreeDrawingGame;
+	} else if (game === 'pong') {
+		currentGame.value = PongGame;
 	} else if (game === 'snake') {
 		currentGame.value = SnakeGame;
 	}
