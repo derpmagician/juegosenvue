@@ -1,5 +1,8 @@
 <template>
   <div class="drawing-app">
+    <div class="tutorial-button">
+      <button @click="showTutorial = true">Tutorial</button>
+    </div>
     <div class="controls">
       <!-- Selector de color -->
       <div class="color-picker">
@@ -31,6 +34,21 @@
             @touchstart="startDrawing" 
             @touchend="stopDrawing" 
             @touchmove="draw"></canvas>
+
+    <!-- Modal de Tutorial -->
+    <div v-if="showTutorial" class="tutorial-modal">
+      <div class="tutorial-content">
+        <h2>Tutorial de Dibujo Libre</h2>
+        <ul>
+          <li>🎨 Usa el selector de color o los botones predefinidos para cambiar el color</li>
+          <li>📏 Ajusta el tamaño del pincel con el control deslizante</li>
+          <li>✏️ Cambia entre pincel redondo y cuadrado</li>
+          <li>🖱️ Haz clic y arrastra para dibujar</li>
+          <li>📱 También funciona con pantalla táctil</li>
+        </ul>
+        <button @click="showTutorial = false">Cerrar</button>
+      </div>
+    </div>
   </div>
 
 </template>
@@ -48,6 +66,7 @@ const currentColor = ref('#61dafb'); // Color inicial
 const colors = ref(['#61dafb', '#ff5733', '#33ff57', '#3357ff', '#ff33a1']); // Colores predefinidos
 const brushSize = ref(5); // Tamaño inicial del pincel
 const selectedBrush = ref('round'); // Tipo de pincel seleccionado
+const showTutorial = ref(false);
 
 // Función para iniciar el dibujo
 const startDrawing = (event) => {
@@ -165,42 +184,77 @@ const updateBrush = () => {
   touch-action: none; /* Desactiva el comportamiento táctil predeterminado */
 }
 
-.tutorial {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 1rem;
-  background-color: #1e2127;
-  border-radius: 8px;
+.tutorial-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+.tutorial-button button {
+  background-color: var(--boton);
+  color: #282c34;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
+
+.tutorial-button button:hover {
+  background-color: #4fa8d3;
+}
+
+.tutorial-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.tutorial-content {
+  background-color: #282c34;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 500px;
   color: #ffffff;
 }
 
-.tutorial-section {
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background-color: #282c34;
-  border-radius: 4px;
-}
-
-.tutorial-section h3 {
+.tutorial-content h2 {
   color: #61dafb;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 }
 
-.tutorial-section pre {
-  background-color: #1a1d23;
-  padding: 1rem;
+.tutorial-content ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.tutorial-content li {
+  margin: 15px 0;
+  font-size: 16px;
+}
+
+.tutorial-content button {
+  margin-top: 20px;
+  padding: 8px 16px;
+  background-color: var(--boton);
+  color: #282c34;
+  border: none;
   border-radius: 4px;
-  overflow-x: auto;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
 }
 
-.tutorial-section code {
-  color: #98c379;
-  font-family: monospace;
-}
-
-.tutorial-section p {
-  margin-top: 1rem;
-  color: #abb2bf;
-  line-height: 1.5;
+.tutorial-content button:hover {
+  background-color: #4fa8d3;
 }
 </style> 

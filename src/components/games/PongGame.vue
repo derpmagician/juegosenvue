@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
 }
 
 .pong-canvas {
-  border: 2px solid #61dafb;
+  border: 2px solid var(--borde);
   margin-bottom: 20px;
 }
 
@@ -233,7 +233,7 @@ onBeforeUnmount(() => {
 .start-screen button {
   padding: 10px 20px;
   font-size: 18px;
-  background-color: #61dafb;
+  background-color: var(--boton);
   border: none;
   border-radius: 4px;
   color: #282c34;
@@ -242,6 +242,6 @@ onBeforeUnmount(() => {
 }
 
 .start-screen button:hover {
-  background-color: #4fa8d3;
+  background-color: var(--boton-o);
 }
 </style> 

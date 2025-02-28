@@ -1,5 +1,13 @@
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
+  --celeste: #61dafb;
+  --celeste-o: #4fa8d3;
+  --verde: #4CAF50;
+  --verde-o: #45a049;
+  --boton: var(--celeste);
+  --boton-h: var(--celeste-o);
+  --letras: var(--celeste);
+  --borde: var(--celeste);
   --vt-c-white: #ffffff;
   --vt-c-white-soft: #f8f8f8;
   --vt-c-white-mute: #f2f2f2;

@@ -26,7 +26,7 @@ const highScore = ref(0);
 // Configuración del juego
 const gridSize = 20;
 const tileCount = 20;
-const initialSpeed = 150;
+const initialSpeed = 240;
 
 // Estado del juego
 const snake = ref([
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
 }
 
 .game-over h2 {
-  color: #FF5252;
+  color: var(--boton);
   margin-bottom: 10px;
 }
 

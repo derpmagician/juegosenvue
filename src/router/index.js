@@ -1,8 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import GameView from '@/views/GameView.vue'
-
-//import GameView from '../views/GameView.vue'
+import CodeView from '@/views/CodeView.vue'
 
 
 const router = createRouter({
@@ -14,10 +13,16 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: '/code',
+      name: 'code',
+      component: CodeView,
+    },
+    {
       path: '/game',
       name: 'game',
       component: GameView,
     },
+
     {
       path: '/about',
       name: 'about',

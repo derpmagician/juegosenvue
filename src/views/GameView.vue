@@ -1,11 +1,11 @@
 <script setup>
 import { ref, watch } from 'vue';
-import { useRoute } from 'vue-router'; // Importa useRoute
-//import PointCatchingGame from '@/components/games/PointCatchingGame.vue'; // Importa el juego de caza de puntos
-import FreeDrawingGame from '@/components/games/FreeDrawingGame.vue'; // Importa el juego de dibujo libre
-import PongGame from '@/components/games/PongGame.vue'; // Importa el juego de Pong
-import SnakeGame from '@/components/games/SnakeGame.vue'; // Importa el juego de Snake
-console.log("Juegos")
+import { useRoute } from 'vue-router';
+import PointCatchingGame from '@/components/games/PointCatchingGame.vue';
+import FreeDrawingGame from '@/components/games/FreeDrawingGame.vue';
+import PongGame from '@/components/games/PongGame.vue';
+import SnakeGame from '@/components/games/SnakeGame.vue';
+import MastermindGame from '@/components/games/MastermindGame.vue';
 
 const currentGame = ref(null);
 const route = useRoute(); // Obtiene la ruta actual
@@ -19,6 +19,10 @@ const loadGame = () => {
 		currentGame.value = PongGame;
 	} else if (game === 'snake') {
 		currentGame.value = SnakeGame;
+	} else if (game === 'pointCatching') {
+		currentGame.value = PointCatchingGame;
+	} else if (game === 'mastermind') {
+		currentGame.value = MastermindGame;
 	}
 };
 
@@ -32,9 +36,9 @@ watch(route, () => {
 </script>
 
 <template>
-	<div>
-		<component :is="currentGame" />
-	</div>
+<div>
+	<component :is="currentGame" />
+</div>
 </template>
 
 <style scoped>
