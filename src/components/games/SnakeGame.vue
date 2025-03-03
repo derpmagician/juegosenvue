@@ -25,7 +25,7 @@ const highScore = ref(0);
 
 // Configuración del juego
 const gridSize = 20;
-const tileCount = 20;
+const tileCount = 30;
 const initialSpeed = 240;
 
 // Estado del juego

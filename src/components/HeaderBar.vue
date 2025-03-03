@@ -8,11 +8,6 @@ const handleGameSelect = (event) => {
   router.push(`/game?game=${game}`);
 };
 
-const handleCodeSelect = (event) => {
-  const code = event.target.value;
-  router.push(`/code?code=${code}`);
-};
-
 const goHome = () => {
   router.push('/home');
 };
@@ -37,20 +32,7 @@ const goHome = () => {
         </optgroup>
       </select>
     </div>
-    <div class="select-container">
-      <select @change="handleCodeSelect" class="game-select">
-        <option value="" disabled selected>Codigos</option>
-        <optgroup label="Codigos">
-          <option value="pointCatching">Point Catching</option>
-          <option value="pong">Pong</option>
-          <option value="snake">Snake</option>
-          <option value="mastermind">Mastermind</option>
-        </optgroup>
-        <optgroup label="Apps">
-          <option value="freeDrawing">Free Drawing</option>
-        </optgroup>
-      </select>
-    </div>
+
   </div>
 </template>
 
